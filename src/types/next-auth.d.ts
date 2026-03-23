@@ -10,6 +10,7 @@ declare module "next-auth" {
       groups: string[];
       isAdmin: boolean;
     };
+    error?: string;
   }
 
   interface User {
@@ -20,5 +21,10 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     groups?: string[];
+    accessToken?: string;
+    idToken?: string;
+    refreshToken?: string;
+    expiresAt?: number;
+    error?: string;
   }
 }

@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -28,27 +28,31 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" className="relative size-9 rounded-full" />}>
+      <DropdownMenuTrigger className="relative size-9 rounded-full cursor-pointer outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring">
         <Avatar className="size-9">
           <AvatarImage src={user.image ?? undefined} alt={user.name ?? ""} />
           <AvatarFallback className="text-xs">{initials}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="end">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {user.groups && user.groups.length > 0 && (
           <>
-            <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-              Gruppen
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                Gruppen
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <div className="px-2 pb-2 flex flex-wrap gap-1">
               {user.groups.map((group) => (
                 <Badge key={group} variant="secondary" className="text-xs">
@@ -63,7 +67,7 @@ export function UserMenu() {
           </>
         )}
         <DropdownMenuItem
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => signOut({ callbackUrl: "/api/auth/oidc-signout" })}
           className="cursor-pointer"
         >
           <LogOut className="mr-2 size-4" />
