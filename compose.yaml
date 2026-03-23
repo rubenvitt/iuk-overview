@@ -1,0 +1,47 @@
+services:
+  web:
+    image: ghcr.io/rubenvitt/iuk-overview:latest
+    # build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-dashboard}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/${POSTGRES_DB:-dashboard}
+      - APP_URL=${APP_URL:-http://localhost:${PORT:-3000}}
+      - AUTH_URL=${APP_URL:-http://localhost:${PORT:-3000}}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_TRUST_HOST=true
+      - POCKET_ID_ISSUER=${POCKET_ID_ISSUER}
+      - POCKET_ID_CLIENT_ID=${POCKET_ID_CLIENT_ID}
+      - POCKET_ID_CLIENT_SECRET=${POCKET_ID_CLIENT_SECRET}
+      - POCKET_ID_SCOPES=${POCKET_ID_SCOPES:-openid profile email groups}
+      - POCKET_ID_GROUPS_CLAIM=${POCKET_ID_GROUPS_CLAIM:-groups}
+      - ADMIN_GROUP=${ADMIN_GROUP:-dashboard-admins}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dashboard}
+      POSTGRES_USER: ${POSTGRES_USER:-dashboard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-dashboard}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
