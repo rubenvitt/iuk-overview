@@ -146,7 +146,7 @@ export function ServiceForm({ service, open, onOpenChange }: ServiceFormProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3 px-4 pb-4">
           <div className="space-y-1">
             <Label htmlFor="name">Name *</Label>
             <Input
