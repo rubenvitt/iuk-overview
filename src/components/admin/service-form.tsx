@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,58 +35,46 @@ function slugify(text: string): string {
 }
 
 export function ServiceForm({ service, open, onOpenChange }: ServiceFormProps) {
+  const formKey = open ? (service?.id ?? "new") : "closed";
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="overflow-y-auto sm:max-w-lg">
+        <ServiceFormFields
+          key={formKey}
+          service={service}
+          onOpenChange={onOpenChange}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function ServiceFormFields({
+  service,
+  onOpenChange,
+}: Omit<ServiceFormProps, "open">) {
   const router = useRouter();
   const isEdit = !!service;
   const [loading, setLoading] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(false);
 
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
-  const [url, setUrl] = useState("");
-  const [iconUrl, setIconUrl] = useState("");
-  const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [requiredGroups, setRequiredGroups] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
-  const [isActive, setIsActive] = useState(true);
-  const [openInNewTab, setOpenInNewTab] = useState(true);
-  const [sortOrder, setSortOrder] = useState(0);
-
-  useEffect(() => {
-    if (open) {
-      if (service) {
-        setName(service.name);
-        setSlug(service.slug);
-        setDescription(service.description);
-        setUrl(service.url);
-        setIconUrl(service.iconUrl ?? "");
-        setCategory(service.category ?? "");
-        setTags(service.tags?.join(", ") ?? "");
-        setRequiredGroups(service.requiredGroups?.join(", ") ?? "");
-        setIsPublic(service.isPublic);
-        setIsActive(service.isActive);
-        setOpenInNewTab(service.openInNewTab);
-        setSortOrder(service.sortOrder);
-        setSlugTouched(true);
-      } else {
-        setName("");
-        setSlug("");
-        setDescription("");
-        setUrl("");
-        setIconUrl("");
-        setCategory("");
-        setTags("");
-        setRequiredGroups("");
-        setIsPublic(true);
-        setIsActive(true);
-        setOpenInNewTab(true);
-        setSortOrder(0);
-        setSlugTouched(false);
-      }
-      // reset
-    }
-  }, [open, service]);
+  const [name, setName] = useState(service?.name ?? "");
+  const [slug, setSlug] = useState(service?.slug ?? "");
+  const [description, setDescription] = useState(service?.description ?? "");
+  const [url, setUrl] = useState(service?.url ?? "");
+  const [iconUrl, setIconUrl] = useState(service?.iconUrl ?? "");
+  const [category, setCategory] = useState(service?.category ?? "");
+  const [tags, setTags] = useState(service?.tags?.join(", ") ?? "");
+  const [requiredGroups, setRequiredGroups] = useState(
+    service?.requiredGroups?.join(", ") ?? "",
+  );
+  const [isPublic, setIsPublic] = useState(service?.isPublic ?? true);
+  const [isActive, setIsActive] = useState(service?.isActive ?? true);
+  const [openInNewTab, setOpenInNewTab] = useState(
+    service?.openInNewTab ?? true,
+  );
+  const [sortOrder, setSortOrder] = useState(service?.sortOrder ?? 0);
+  const [slugTouched, setSlugTouched] = useState(isEdit);
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -133,193 +121,189 @@ export function ServiceForm({ service, open, onOpenChange }: ServiceFormProps) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
-        <SheetHeader>
-          <SheetTitle>
-            {isEdit ? "Service bearbeiten" : "Neuer Service"}
-          </SheetTitle>
-          <SheetDescription>
-            {isEdit
-              ? "Ändern Sie die Eigenschaften des Services."
-              : "Erstellen Sie einen neuen Service im Dashboard."}
-          </SheetDescription>
-        </SheetHeader>
+    <>
+      <SheetHeader>
+        <SheetTitle>{isEdit ? "Service bearbeiten" : "Neuer Service"}</SheetTitle>
+        <SheetDescription>
+          {isEdit
+            ? "Ändern Sie die Eigenschaften des Services."
+            : "Erstellen Sie einen neuen Service im Dashboard."}
+        </SheetDescription>
+      </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-3 px-4 pb-4">
-          <div className="space-y-1">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="z. B. Nextcloud"
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-3 px-4 pb-4">
+        <div className="space-y-1">
+          <Label htmlFor="name">Name *</Label>
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            placeholder="z. B. Nextcloud"
+            required
+          />
+        </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="slug">Slug *</Label>
-            <Input
-              id="slug"
-              value={slug}
-              onChange={(e) => {
-                setSlug(e.target.value);
-                setSlugTouched(true);
-              }}
-              placeholder="z. B. nextcloud"
-              required
-              pattern="^[a-z0-9-]+$"
-            />
+        <div className="space-y-1">
+          <Label htmlFor="slug">Slug *</Label>
+          <Input
+            id="slug"
+            value={slug}
+            onChange={(e) => {
+              setSlug(e.target.value);
+              setSlugTouched(true);
+            }}
+            placeholder="z. B. nextcloud"
+            required
+            pattern="^[a-z0-9-]+$"
+          />
+          <p className="text-xs text-muted-foreground">
+            Nur Kleinbuchstaben, Zahlen und Bindestriche
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="description">Beschreibung</Label>
+          <Textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Kurze Beschreibung des Services..."
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="url">URL *</Label>
+          <Input
+            id="url"
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://..."
+            required
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="iconUrl">Icon URL</Label>
+          <Input
+            id="iconUrl"
+            value={iconUrl}
+            onChange={(e) => setIconUrl(e.target.value)}
+            placeholder="https://example.com/icon.png"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="category">Kategorie</Label>
+          <Input
+            id="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="z. B. Monitoring, Entwicklung"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="tags">Tags</Label>
+          <Input
+            id="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="Kommagetrennt, z. B. intern, wichtig"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label htmlFor="sortOrder">Reihenfolge</Label>
+          <Input
+            id="sortOrder"
+            type="number"
+            value={sortOrder}
+            onChange={(e) => setSortOrder(Number(e.target.value) || 0)}
+          />
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border p-2.5">
+          <div>
+            <Label htmlFor="isPublic" className="font-medium">
+              Öffentlich
+            </Label>
             <p className="text-xs text-muted-foreground">
-              Nur Kleinbuchstaben, Zahlen und Bindestriche
+              Für alle eingeloggten Nutzer sichtbar
             </p>
           </div>
+          <Switch
+            id="isPublic"
+            checked={isPublic}
+            onCheckedChange={setIsPublic}
+          />
+        </div>
 
+        {!isPublic && (
           <div className="space-y-1">
-            <Label htmlFor="description">Beschreibung</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Kurze Beschreibung des Services..."
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="url">URL *</Label>
+            <Label htmlFor="requiredGroups">Erforderliche Gruppen</Label>
             <Input
-              id="url"
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://..."
-              required
+              id="requiredGroups"
+              value={requiredGroups}
+              onChange={(e) => setRequiredGroups(e.target.value)}
+              placeholder="Kommagetrennt, z. B. ops-team, dev-team"
             />
+            <p className="text-xs text-muted-foreground">
+              Nutzer benötigen mindestens eine dieser Gruppen
+            </p>
           </div>
+        )}
 
-          <div className="space-y-1">
-            <Label htmlFor="iconUrl">Icon URL</Label>
-            <Input
-              id="iconUrl"
-              value={iconUrl}
-              onChange={(e) => setIconUrl(e.target.value)}
-              placeholder="https://example.com/icon.png"
-            />
+        <div className="flex items-center justify-between rounded-lg border p-2.5">
+          <div>
+            <Label htmlFor="isActive" className="font-medium">
+              Aktiv
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Inaktive Services werden nicht angezeigt
+            </p>
           </div>
+          <Switch
+            id="isActive"
+            checked={isActive}
+            onCheckedChange={setIsActive}
+          />
+        </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="category">Kategorie</Label>
-            <Input
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="z. B. Monitoring, Entwicklung"
-            />
+        <div className="flex items-center justify-between rounded-lg border p-2.5">
+          <div>
+            <Label htmlFor="openInNewTab" className="font-medium">
+              In neuem Tab öffnen
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Link in einem neuen Browser-Tab öffnen
+            </p>
           </div>
+          <Switch
+            id="openInNewTab"
+            checked={openInNewTab}
+            onCheckedChange={setOpenInNewTab}
+          />
+        </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="tags">Tags</Label>
-            <Input
-              id="tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="Kommagetrennt, z. B. intern, wichtig"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="sortOrder">Reihenfolge</Label>
-            <Input
-              id="sortOrder"
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value) || 0)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border p-2.5">
-            <div>
-              <Label htmlFor="isPublic" className="font-medium">
-                Öffentlich
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Für alle eingeloggten Nutzer sichtbar
-              </p>
-            </div>
-            <Switch
-              id="isPublic"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-            />
-          </div>
-
-          {!isPublic && (
-            <div className="space-y-1">
-              <Label htmlFor="requiredGroups">Erforderliche Gruppen</Label>
-              <Input
-                id="requiredGroups"
-                value={requiredGroups}
-                onChange={(e) => setRequiredGroups(e.target.value)}
-                placeholder="Kommagetrennt, z. B. ops-team, dev-team"
-              />
-              <p className="text-xs text-muted-foreground">
-                Nutzer benötigen mindestens eine dieser Gruppen
-              </p>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between rounded-lg border p-2.5">
-            <div>
-              <Label htmlFor="isActive" className="font-medium">
-                Aktiv
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Inaktive Services werden nicht angezeigt
-              </p>
-            </div>
-            <Switch
-              id="isActive"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border p-2.5">
-            <div>
-              <Label htmlFor="openInNewTab" className="font-medium">
-                In neuem Tab öffnen
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Link in einem neuen Browser-Tab öffnen
-              </p>
-            </div>
-            <Switch
-              id="openInNewTab"
-              checked={openInNewTab}
-              onCheckedChange={setOpenInNewTab}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading
-                ? "Speichern..."
-                : isEdit
-                  ? "Speichern"
-                  : "Erstellen"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Abbrechen
-            </Button>
-          </div>
-        </form>
-      </SheetContent>
-    </Sheet>
+        <div className="flex gap-3 pt-2">
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading
+              ? "Speichern..."
+              : isEdit
+                ? "Speichern"
+                : "Erstellen"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Abbrechen
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
